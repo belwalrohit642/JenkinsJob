@@ -28,7 +28,7 @@ recordName="test.rahul.com"
 hostedZoneId="Z04318891OPKK2SEM5DXF"
 awsRegion="us-east-1"
 
-aws configure
+
 
 aws ec2 create-key-pair --key-name "$keyName" --region "$awsRegion"
 aws ec2 create-security-group --group-name "$securityGroupName"  --description "my-sg" --region "$awsRegion"
