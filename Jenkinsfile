@@ -27,7 +27,7 @@ pipeline {
                         aws configure set region $awsRegion
 
                         # Check if the key pair already exists
-                        existingKeyPair=$(aws ec2 describe-key-pairs --key-names MyKeyPair --region us-east-1 --query 'KeyPairs[0].KeyName' --output text)
+                        existingKeyPair=\$(aws ec2 describe-key-pairs --key-names MyKeyPair --region us-east-1 --query 'KeyPairs[0].KeyName' --output text)
 
                         if [ "$existingKeyPair" = "MyKeyPair" ]; then
                           echo "Key pair MyKeyPair already exists."
