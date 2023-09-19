@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Checkout') {
             steps {
@@ -29,7 +29,6 @@ hostedZoneId="Z04318891OPKK2SEM5DXF"
 awsRegion="us-east-1"
 
 
-
 aws ec2 create-key-pair --key-name "$keyName" --region "$awsRegion"
 aws ec2 create-security-group --group-name "$securityGroupName"  --description "my-sg" --region "$awsRegion"
 
@@ -37,7 +36,7 @@ aws ec2 create-security-group --group-name "$securityGroupName"  --description "
 aws ec2 authorize-security-group-ingress --group-name "$securityGroupName" --protocol tcp --port 22 --cidr 0.0.0.0/0
 aws ec2 authorize-security-group-ingress --group-name "$securityGroupName" --protocol tcp --port 80 --cidr 0.0.0.0/0
 
-instanceInfo=$(aws ec2 run-instances --image-id "$amiId" --instance-type "$instanceType" --security-groups "$securityGroupName" --key-name "$keyName")
+instanceInfo=\$(aws ec2 run-instances --image-id "\$amiId" --instance-type "\$instanceType" --security-groups "\$securityGroupName" --key-name "\$keyName")
 
 instanceId=$(echo "$instanceInfo" | jq -r '.Instances[0].InstanceId')
 
