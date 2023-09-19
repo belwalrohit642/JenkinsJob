@@ -68,7 +68,9 @@ pipeline {
                         echo '$instanceInfo' | jq -r '.Instances[0].InstanceId'
                     """, returnStdout: true).trim()
 
+                    sh(script: """
                     aws ec2 create-tags --resources $instanceId --tags Key=Name,Value=$instanceName
+                    """)  
 
                   
                     def privateIpAddress = sh(script: """
