@@ -38,7 +38,8 @@ aws ec2 authorize-security-group-ingress --group-name "$securityGroupName" --pro
 
 instanceInfo=\$(aws ec2 run-instances --image-id "\$amiId" --instance-type "\$instanceType" --security-groups "\$securityGroupName" --key-name "\$keyName")
 
-instanceId=$(echo "$instanceInfo" | jq -r '.Instances[0].InstanceId')
+instanceId=\$(echo "\$instanceInfo" | jq -r '.Instances[0].InstanceId')
+
 
 aws ec2 create-tags --resources "$instanceId" --tags Key=Name,Value="$instanceName"
 
