@@ -6,7 +6,6 @@ pipeline {
                 checkout scm
             }
         }
-
         stage('Run Bash Script') {
             steps {
                 script {
@@ -19,7 +18,7 @@ pipeline {
                     def hostedZoneId = "Z04318891OPKK2SEM5DXF"
                     def awsRegion = "us-east-1"
 
-                    sh """
+                    def existingKeyPair = sh(script: """
                         #!/bin/bash
                         # Set AWS CLI credentials
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
@@ -27,48 +26,80 @@ pipeline {
                         aws configure set region $awsRegion
 
                         # Check if the key pair already exists
-                       existingKeyPair=\$(aws ec2 describe-key-pairs --key-names MyKeyPair --region us-east-1 --query 'KeyPairs[0].KeyName' --output text)
+                        aws ec2 describe-key-pairs --key-names $keyName --region $awsRegion --output text > existing_key_pair.txt
+                    """, returnStatus: true)
+                    
+                    def existingKeyPairName = readFile("existing_key_pair.txt").trim()
 
+                    if (existingKeyPair == 0) {
+                       
+                        echo "Key pair $keyName already exists."
+                    } else {
+                    
+                        sh(script: """
+                            aws ec2 create-key-pair --key-name $keyName --region $awsRegion
+                        """)
+                        echo "Key pair $keyName created."
+                    }
 
-                        if [ "$existingKeyPair" = "MyKeyPair" ]; then
-                          echo "Key pair MyKeyPair already exists."
-                        else  
-                          aws ec2 create-key-pair --key-name MyKeyPair --region us-east-1
-                        fi
+                 
+                    def existingSecurityGroup = sh(script: """
+                        aws ec2 describe-security-groups --group-names $securityGroupName --region $awsRegion --output text
+                    """, returnStatus: true)
 
-                        aws ec2 create-security-group --group-name $securityGroupName --description "my-sg" --region $awsRegion
+                    if (existingSecurityGroup == 0) {
+                        // Security group exists
+                        echo "Security group $securityGroupName already exists."
+                    } else {
+                        
+                        sh(script: """
+                            aws ec2 create-security-group --group-name $securityGroupName --description "my-sg" --region $awsRegion
+                            aws ec2 authorize-security-group-ingress --group-name $securityGroupName --protocol tcp --port 22 --cidr 0.0.0.0/0
+                            aws ec2 authorize-security-group-ingress --group-name $securityGroupName --protocol tcp --port 80 --cidr 0.0.0.0/0
+                        """)
+                        echo "Security group $securityGroupName created."
+                    }
 
-                        aws ec2 authorize-security-group-ingress --group-name $securityGroupName --protocol tcp --port 22 --cidr 0.0.0.0/0
-                        aws ec2 authorize-security-group-ingress --group-name $securityGroupName --protocol tcp --port 80 --cidr 0.0.0.0/0
+                    def instanceInfo = sh(script: """
+                        aws ec2 run-instances --image-id $amiId --instance-type $instanceType --security-groups $securityGroupName --key-name $keyName
+                    """, returnStdout: true).trim()
+                    
+                    def instanceId = sh(script: """
+                        echo '$instanceInfo' | jq -r '.Instances[0].InstanceId'
+                    """, returnStdout: true).trim()
 
-                        instanceInfo=\$(aws ec2 run-instances --image-id $amiId --instance-type $instanceType --security-groups $securityGroupName --key-name $keyName)
+                    aws ec2 create-tags --resources $instanceId --tags Key=Name,Value=$instanceName
 
-                        instanceId=\$(echo \$instanceInfo | jq -r '.Instances[0].InstanceId')
+                  
+                    def privateIpAddress = sh(script: """
+                        aws ec2 describe-instances --instance-ids $instanceId --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text
+                    """, returnStdout: true).trim()
 
-                        aws ec2 create-tags --resources \$instanceId --tags Key=Name,Value=$instanceName
+                    echo "Private IP Address: $privateIpAddress"
 
-                        privateIpAddress=\$(aws ec2 describe-instances --instance-ids \$instanceId --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text)
-
-                        echo "Private IP Address: \$privateIpAddress"
-
+           
+                    sh(script: """
                         aws route53 change-resource-record-sets --hosted-zone-id $hostedZoneId --change-batch '{
-                          "Changes": [
-                            {
-                              "Action": "UPSERT",
-                              "ResourceRecordSet": {
-                                "Name": "$recordName",
-                                "Type": "A",
-                                "TTL": 300,
-                                "ResourceRecords": [
-                                  {
-                                    "Value": "\$privateIpAddress"
-                                  }
-                                ]
-                              }
-                            }
-                          ]
+                            "Changes": [
+                                {
+                                    "Action": "UPSERT",
+                                    "ResourceRecordSet": {
+                                        "Name": "$recordName",
+                                        "Type": "A",
+                                        "TTL": 300,
+                                        "ResourceRecords": [
+                                            {
+                                                "Value": "$privateIpAddress"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
                         }'
-                    """
+                    """)
+
+                
+                    echo "existingKeyPair: $existingKeyPairName"
                 }
             }
         }
