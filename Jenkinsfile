@@ -26,7 +26,15 @@ pipeline {
                         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                         aws configure set region $awsRegion
 
-                        aws ec2 create-key-pair --key-name $keyName --region $awsRegion
+                        # Check if the key pair already exists
+                        existingKeyPair=$(aws ec2 describe-key-pairs --key-names MyKeyPair --region us-east-1 --query 'KeyPairs[0].KeyName' --output text)
+
+                        if [ "$existingKeyPair" = "MyKeyPair" ]; then
+                          echo "Key pair MyKeyPair already exists."
+                        else  
+                          aws ec2 create-key-pair --key-name MyKeyPair --region us-east-1
+                        fi
+
                         aws ec2 create-security-group --group-name $securityGroupName --description "my-sg" --region $awsRegion
 
                         aws ec2 authorize-security-group-ingress --group-name $securityGroupName --protocol tcp --port 22 --cidr 0.0.0.0/0
