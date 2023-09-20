@@ -10,7 +10,9 @@ node {
        def  userInput = input(
             id: 'userInput',
             message: 'Enter the private IP address of the EC2 instance:',
-            parameters: [choice(choices: [''], description: 'Private IP')]
+            parameters: [
+                [$class: 'TextParameterDefinition', defaultValue: '', description: 'Text input:', name: 'IP_address']
+            ]
         )
 
         PRIVATE_IP = userInput
