@@ -7,10 +7,13 @@ node {
 
     try {
         // Input step to get the private IP address
-        PRIVATE_IP = input(
+        input(
+            id: 'userInput',
             message: 'Enter the private IP address of the EC2 instance:',
             parameters: [string(defaultValue: '', description: 'Private IP')]
         )
+
+        PRIVATE_IP = userInput
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
