@@ -24,7 +24,7 @@ PRIVATE_IP = userInput
         }
 
         // Find EC2 Instance
-        stage('Find EC2 Instance') {
+        stage('Find EC2 Instance') {    
             try {
                 INSTANCE_ID = sh(
     script: "aws ec2 describe-instances --filters \"Name=private-ip-address,Values=${PRIVATE_IP}\" --query 'Reservations[0].Instances[0].InstanceId' --output text",
@@ -55,7 +55,7 @@ stage('Confirm Termination') {
         )
 
         script {
-            if (Confirmation == 'n') {
+            if (params.Confirmation == 'n') {
                 echo "Termination canceled."
                 currentBuild.result = 'ABORTED'
                 error 'Termination canceled.'
