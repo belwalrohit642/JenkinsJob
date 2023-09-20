@@ -1,22 +1,20 @@
 def is_valid_ip(ip) {
-    return ip =~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/
+    // Use a more robust regular expression to validate IP addresses
+    return ip =~ /^(\d{1,3}\.){3}\d{1,3}$/
 }
 
 node {
-    def PRIVATE_IP
-
     try {
         // Input step to get the private IP address
-        userInput = input(
-    id: 'userInput',
-    message: 'Enter the private IP address of the EC2 instance:',
-    parameters: [
-        [$class: 'TextParameterDefinition', defaultValue: 'None', description: 'Private Ip address:', name: 'IP_address']
-    ]
-)
+        def userInput = input(
+            id: 'userInput',
+            message: 'Enter the private IP address of the EC2 instance:',
+            parameters: [
+                [$class: 'TextParameterDefinition', defaultValue: 'None', description: 'Private IP address:', name: 'IP_address']
+            ]
+        )
 
-// Access the 'IP_address' parameter correctly
-PRIVATE_IP = userInput
+        def PRIVATE_IP = userInput['IP_address']
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
@@ -24,13 +22,12 @@ PRIVATE_IP = userInput
         }
 
         // Find EC2 Instance
-        stage('Find EC2 Instance') {    
+        stage('Find EC2 Instance') {
             try {
-                INSTANCE_ID = sh(
-    script: "aws ec2 describe-instances --filters \"Name=private-ip-address,Values=${PRIVATE_IP}\" --query 'Reservations[0].Instances[0].InstanceId' --output text",
-    returnStdout: true
-).trim()
-
+                def INSTANCE_ID = sh(
+                    script: "aws ec2 describe-instances --filters \"Name=private-ip-address,Values=${PRIVATE_IP}\" --query 'Reservations[0].Instances[0].InstanceId' --output text",
+                    returnStdout: true
+                ).trim()
 
                 if (INSTANCE_ID.isEmpty()) {
                     error "No EC2 instance found with the provided private IP address: ${PRIVATE_IP}"
@@ -38,53 +35,48 @@ PRIVATE_IP = userInput
 
                 echo "Found instance with private IP ${PRIVATE_IP} and ID: ${INSTANCE_ID}"
                 currentBuild.description = "Found EC2 instance: ${INSTANCE_ID}"
-            } catch (Exception e) {
-                error "Failed to find EC2 instance: ${e.message}"
-            }
-        }
-       stage('Confirm Termination') {
-            steps {
-                script {
-    choiceInput = input(
-    id: 'choiceInput',
-    message: 'Choose an option:',
-    parameters: [
-        [$class: 'ChoiceParameterDefinition',
-         name: 'Option',
-         description: 'Select an option:',
-         choices: ['y', 'n'],
-         defaultValue: 'n']
-    ]
-)
 
+                // Confirm Termination
+                def choiceInput = input(
+                    id: 'choiceInput',
+                    message: 'Choose an option:',
+                    parameters: [
+                        [$class: 'ChoiceParameterDefinition',
+                         name: 'Option',
+                         description: 'Select an option:',
+                         choices: ['y', 'n'],
+                         defaultValue: 'n']
+                    ]
+                )
 
-                    if (choiceInput == 'n') {
-                        echo "Termination canceled."
-                        currentBuild.result = 'ABORTED'
-                        error 'Termination canceled.'
+                if (choiceInput == 'n') {
+                    echo "Termination canceled."
+                    currentBuild.result = 'ABORTED'
+                    error 'Termination canceled.'
+                }
+
+                // Terminate EC2 Instance
+                stage('Terminate EC2 Instance') {
+                    try {
+                        sh "aws ec2 terminate-instances --instance-ids ${INSTANCE_ID}"
+                        echo "Terminating instance ${INSTANCE_ID}..."
+                    } catch (Exception e) {
+                        error "Failed to terminate EC2 instance: ${e.message}"
                     }
                 }
-            }
-        }
 
-
-        // Terminate EC2 Instance
-        stage('Terminate EC2 Instance') {
-            try {
-                sh "aws ec2 terminate-instances --instance-ids ${INSTANCE_ID}"
-                echo "Terminating instance ${INSTANCE_ID}..."
+                // Wait for Termination
+                stage('Wait for Termination') {
+                    try {
+                        sh "aws ec2 wait instance-terminated --instance-ids ${INSTANCE_ID}"
+                        echo "Instance ${INSTANCE_ID} has been terminated."
+                    } catch (Exception e) {
+                        error "Failed to wait for EC2 instance termination: ${e.message}"
+                    }
+                }
             } catch (Exception e) {
-                error "Failed to terminate EC2 instance: ${e.message}"
-            }
-        }
-
-        // Wait for Termination
-        stage('Wait for Termination') {
-            try {
-                sh "aws ec2 wait instance-terminated --instance-ids ${INSTANCE_ID}"
-                echo "Instance ${INSTANCE_ID} has been terminated."
-            } catch (Exception e) {
-                error "Failed to wait for EC2 instance termination: ${e.message}"
+                currentBuild.result = 'FAILURE'
+                echo "Pipeline failed: ${e.message}"
             }
         }
     } catch (Exception e) {
