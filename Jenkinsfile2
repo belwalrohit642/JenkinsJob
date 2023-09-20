@@ -45,12 +45,13 @@ PRIVATE_IP = userInput
 
      // Confirm Termination
 stage('Confirm Termination') {
-    input {
-        message "Do you want to terminate this instance? (y/n):"
-        parameters {
-            choice(name: 'Confirmation', choices: ['y', 'n'], description: 'Confirmation')
-        }
+   input {
+    message("Do you want to terminate this instance? (y/n):")
+    parameters {
+        choice(name: 'Confirmation', choices: ['y', 'n'], description: 'Confirmation')
     }
+}
+
     steps {
         script {
             if (Confirmation == 'n') {
