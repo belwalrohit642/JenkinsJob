@@ -43,21 +43,25 @@ PRIVATE_IP = userInput
             }
         }
 
-        // Confirm Termination
-        stage('Confirm Termination') {
-            input {
-                message 'Do you want to terminate this instance? (y/n):', parameters: [choice(choices: 'y\nn', description: 'Confirmation')]
-            }
-            steps {
-                script {
-                    if (input == 'n') {
-                        echo "Termination canceled."
-                        currentBuild.result = 'ABORTED'
-                        error 'Termination canceled.'
-                    }
-                }
+     // Confirm Termination
+stage('Confirm Termination') {
+    input {
+        message "Do you want to terminate this instance? (y/n):"
+        parameters {
+            choice(name: 'Confirmation', choices: 'y\nn', description: 'Confirmation')
+        }
+    }
+    steps {
+        script {
+            if (Confirmation == 'n') {
+                echo "Termination canceled."
+                currentBuild.result = 'ABORTED'
+                error 'Termination canceled.'
             }
         }
+    }
+}
+
 
         // Terminate EC2 Instance
         stage('Terminate EC2 Instance') {
