@@ -42,8 +42,7 @@ PRIVATE_IP = userInput
                 error "Failed to find EC2 instance: ${e.message}"
             }
         }
-
-     // Confirm Termination
+// Confirm Termination
 stage('Confirm Termination') {
    input {
     message("Do you want to terminate this instance? (y/n):")
