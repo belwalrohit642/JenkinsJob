@@ -48,7 +48,7 @@ stage('Confirm Termination') {
     input {
         message "Do you want to terminate this instance? (y/n):"
         parameters {
-            choice(name: 'Confirmation', choices: 'y\nn', description: 'Confirmation')
+            choice(name: 'Confirmation', choices: ['y', 'n'], description: 'Confirmation')
         }
     }
     steps {
