@@ -10,9 +10,9 @@ node {
             userInput = input(
             id: 'userInput',
             message: 'Enter the private IP address of the EC2 instance:',
-            parameters: [
-                [$class: 'TextParameterDefinition', defaultValue: '', description: 'Text input:', name: 'IP_address']
-            ]
+            parameters: [[
+                [$class: 'TextParameterDefinition', defaultValue: 'None', description: 'Private Ip address:', name: 'IP_address']
+            ]]
         )
 
         PRIVATE_IP = userInput['IP_address']
