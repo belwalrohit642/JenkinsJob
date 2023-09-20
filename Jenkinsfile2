@@ -65,8 +65,6 @@ def PRIVATE_IP =userInput
                         error "Failed to terminate EC2 instance: ${e.message}"
                     }
                 }
-
-                S
                 stage('Wait for Termination') {
                     try {
                         sh "aws ec2 wait instance-terminated --instance-ids ${INSTANCE_ID}"
