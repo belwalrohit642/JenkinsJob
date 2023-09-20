@@ -7,7 +7,7 @@ node {
 
     try {
         // Input step to get the private IP address
-        userInput = input(
+       def  userInput = input(
             id: 'userInput',
             message: 'Enter the private IP address of the EC2 instance:',
             parameters: [choice(choices: [''], description: 'Private IP')]
