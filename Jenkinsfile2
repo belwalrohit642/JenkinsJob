@@ -26,10 +26,11 @@ PRIVATE_IP = userInput
         // Find EC2 Instance
         stage('Find EC2 Instance') {
             try {
-                def INSTANCE_ID = sh(
-                    script: "aws ec2 describe-instances --filters \"Name=private-ip-address,Values=${PRIVATE_IP}\" --query 'Reservations[0].Instances[0].InstanceId' --output text",
-                    returnStatus: true
-                ).trim()
+                INSTANCE_ID = sh(
+    script: "aws ec2 describe-instances --filters \"Name=private-ip-address,Values=${PRIVATE_IP}\" --query 'Reservations[0].Instances[0].InstanceId' --output text",
+    returnStdout: true
+).trim()
+
 
                 if (INSTANCE_ID.isEmpty()) {
                     error "No EC2 instance found with the provided private IP address: ${PRIVATE_IP}"
