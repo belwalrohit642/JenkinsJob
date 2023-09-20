@@ -47,8 +47,7 @@ stage('Confirm Termination') {
    input(
     message: 'Do you want to terminate this instance? (y/n):',
     parameters: [
-        [$class: 'ChoiceParameterDefinition', 
-         defaultValue: 'n',  
+        [$class: 'ChoiceParameterDefinition',   
          choices: 'y\nn',   
          description: 'Confirmation', 
          name: 'Confirmation']
