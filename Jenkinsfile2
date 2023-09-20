@@ -1,0 +1,77 @@
+pipeline {
+    agent any
+
+    environment {
+        PRIVATE_IP = input(message: 'Enter the private IP address of the EC2 instance:', parameters: [string(defaultValue: '', description: 'Private IP')])
+    }
+
+    stages {
+        stage('Validate IP Address') {
+            steps {
+                script {
+                    def is_valid_ip(ip) {
+                        return ip =~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/
+                    }
+
+                    if (!is_valid_ip(PRIVATE_IP)) {
+                        error "Invalid IP address format. Please enter a valid private IP address."
+                    }
+                }
+            }
+        }
+
+        stage('Find EC2 Instance') {
+            steps {
+                script {
+                    def INSTANCE_ID = sh(script: "aws ec2 describe-instances --filters \"Name=private-ip-address,Values=${PRIVATE_IP}\" --query 'Reservations[0].Instances[0].InstanceId' --output text", returnStatus: true).trim()
+
+                    if (INSTANCE_ID.isEmpty()) {
+                        error "No EC2 instance found with the provided private IP address: ${PRIVATE_IP}"
+                    }
+
+                    echo "Found instance with private IP ${PRIVATE_IP} and ID: ${INSTANCE_ID}"
+                    currentBuild.description = "Found EC2 instance: ${INSTANCE_ID}"
+                }
+            }
+        }
+
+        stage('Confirm Termination') {
+            input {
+                message 'Do you want to terminate this instance? (y/n):', parameters: [choice(choices: 'y\nn', description: 'Confirmation')]
+            }
+            steps {
+                script {
+                    if (input == 'n') {
+                        echo "Termination canceled."
+                        currentBuild.result = 'ABORTED'
+                        error 'Termination canceled.'
+                    }
+                }
+            }
+        }
+
+        stage('Terminate EC2 Instance') {
+            steps {
+                script {
+                    sh "aws ec2 terminate-instances --instance-ids ${INSTANCE_ID}"
+                    echo "Terminating instance ${INSTANCE_ID}..."
+                }
+            }
+        }
+
+        stage('Wait for Termination') {
+            steps {
+                script {
+                    sh "aws ec2 wait instance-terminated --instance-ids ${INSTANCE_ID}"
+                    echo "Instance ${INSTANCE_ID} has been terminated."
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up or additional steps if needed
+        }
+    }
+}
