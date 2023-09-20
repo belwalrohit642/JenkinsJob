@@ -15,7 +15,7 @@ node {
 )
 
 // Access the 'IP_address' parameter value
-def PRIVATE_IP =userInput['parameters']['IP_address']
+def PRIVATE_IP =userInput
 
 
         // Validate IP Address
