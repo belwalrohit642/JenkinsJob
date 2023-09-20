@@ -1,11 +1,11 @@
 def is_valid_ip(ip) {
-    // Use a more robust regular expression to validate IP addresses
+
     return ip =~ /^(\d{1,3}\.){3}\d{1,3}$/
 }
 
 node {
     try {
-        // Input step to get the private IP address
+  
  def userInput = input(
     id: 'userInput',
     message: 'Enter the private IP address of the EC2 instance:',
@@ -14,16 +14,16 @@ node {
     ]
 )
 
-// Access the 'IP_address' parameter value
+
 def PRIVATE_IP =userInput
 
 
-        // Validate IP Address
+
         if (!is_valid_ip(PRIVATE_IP)) {
             error "Invalid IP address format. Please enter a valid private IP address."
         }
 
-        // Find EC2 Instance
+     
         stage('Find EC2 Instance') {
             try {
                 def INSTANCE_ID = sh(
@@ -38,7 +38,6 @@ def PRIVATE_IP =userInput
                 echo "Found instance with private IP ${PRIVATE_IP} and ID: ${INSTANCE_ID}"
                 currentBuild.description = "Found EC2 instance: ${INSTANCE_ID}"
 
-                // Confirm Termination
                 def choiceInput = input(
                     id: 'choiceInput',
                     message: 'Choose an option:',
@@ -57,7 +56,7 @@ def PRIVATE_IP =userInput
                     error 'Termination canceled.'
                 }
 
-                // Terminate EC2 Instance
+                
                 stage('Terminate EC2 Instance') {
                     try {
                         sh "aws ec2 terminate-instances --instance-ids ${INSTANCE_ID}"
@@ -67,7 +66,7 @@ def PRIVATE_IP =userInput
                     }
                 }
 
-                // Wait for Termination
+                S
                 stage('Wait for Termination') {
                     try {
                         sh "aws ec2 wait instance-terminated --instance-ids ${INSTANCE_ID}"
