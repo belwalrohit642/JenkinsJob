@@ -14,7 +14,7 @@ node {
             ]
         )
 
-        def PRIVATE_IP = userInput['IP_address']
+       PRIVATE_IP = userInput.get('IP_address')
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
