@@ -45,19 +45,20 @@ PRIVATE_IP = userInput
        stage('Confirm Termination') {
             steps {
                 script {
-                    def userInput2 = input(
-                        id: 'userInput2',
-                        message: 'Do you want to terminate this instance? (y/n):',
-                        parameters: [
-                            choice(
-                                choices: 'Y\nN',
-                                description: 'Choose Y for Yes or N for No',
-                                name: 'CONTINUE'
-                            )
-                        ]
-                    )
+    choiceInput = input(
+    id: 'choiceInput',
+    message: 'Choose an option:',
+    parameters: [
+        [$class: 'ChoiceParameterDefinition',
+         name: 'Option',
+         description: 'Select an option:',
+         choices: ['y', 'n'],
+         defaultValue: 'n']
+    ]
+)
 
-                    if (userInput2 == 'n') {
+
+                    if (choiceInput == 'n') {
                         echo "Termination canceled."
                         currentBuild.result = 'ABORTED'
                         error 'Termination canceled.'
