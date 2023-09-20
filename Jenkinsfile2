@@ -13,7 +13,7 @@ node {
                 [$class: 'TextParameterDefinition', defaultValue: 'None', description: 'Private IP address:', name: 'IP_address']
             ]
         )
-def PRIVATE_IP = userInput['IP_address']
+    def PRIVATE_IP = userInput.parameters.IP_address
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
