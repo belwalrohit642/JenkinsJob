@@ -64,7 +64,6 @@ stage('Confirm Termination') {
     }
 }
 
-
         // Terminate EC2 Instance
         stage('Terminate EC2 Instance') {
             try {
