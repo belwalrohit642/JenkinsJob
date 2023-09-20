@@ -45,7 +45,7 @@ PRIVATE_IP = userInput
 stage('Confirm Termination') {
     steps {
      userInput2= input(
-            id: 'userInput2'
+            id: 'userInput2',
             message: 'Do you want to terminate this instance? (y/n):',
                         parameters: [
                             choice(
