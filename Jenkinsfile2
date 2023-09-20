@@ -16,7 +16,7 @@ node {
 )
 
 // Access the 'IP_address' parameter correctly
-PRIVATE_IP = userInput['IP_address']
+PRIVATE_IP = userInput.parameters.IP_address
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
