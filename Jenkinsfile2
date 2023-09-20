@@ -4,7 +4,6 @@ def is_valid_ip(ip) {
 }
 
 node {
-def PRIVATE_IP
     try {
         // Input step to get the private IP address
         def userInput = input(
@@ -15,7 +14,7 @@ def PRIVATE_IP
             ]
         )
 
-        PRIVATE_IP = userInput['IP_address']
+        def PRIVATE_IP = userInput['IP_address']
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
