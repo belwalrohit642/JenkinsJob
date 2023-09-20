@@ -10,7 +10,7 @@ node {
         userInput = input(
             id: 'userInput',
             message: 'Enter the private IP address of the EC2 instance:',
-            parameters: [string(defaultValue: '', description: 'Private IP')]
+            parameters: [choice(choices: [''], description: 'Private IP')]
         )
 
         PRIVATE_IP = userInput
