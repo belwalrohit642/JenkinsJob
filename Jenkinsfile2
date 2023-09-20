@@ -6,7 +6,7 @@ def is_valid_ip(ip) {
 node {
     try {
         // Input step to get the private IP address
- userInput = input(
+   input(
     id: 'userInput',
     message: 'Enter the private IP address of the EC2 instance:',
     parameters: [
