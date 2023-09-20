@@ -42,11 +42,12 @@ PRIVATE_IP = userInput
                 error "Failed to find EC2 instance: ${e.message}"
             }
         }
-stage('Confirm Termination') {
-    steps {
-     userInput2= input(
-            id: 'userInput2',
-            message: 'Do you want to terminate this instance? (y/n):',
+       stage('Confirm Termination') {
+            steps {
+                script {
+                    def userInput2 = input(
+                        id: 'userInput2',
+                        message: 'Do you want to terminate this instance? (y/n):',
                         parameters: [
                             choice(
                                 choices: 'Y\nN',
@@ -54,17 +55,17 @@ stage('Confirm Termination') {
                                 name: 'CONTINUE'
                             )
                         ]
-        )
+                    )
 
-        script {
-            if (userInput2 == 'n') {
-                echo "Termination canceled."
-                currentBuild.result = 'ABORTED'
-                error 'Termination canceled.'
+                    if (userInput2 == 'n') {
+                        echo "Termination canceled."
+                        currentBuild.result = 'ABORTED'
+                        error 'Termination canceled.'
+                    }
+                }
             }
         }
-    }
-}
+
 
         // Terminate EC2 Instance
         stage('Terminate EC2 Instance') {
