@@ -10,10 +10,10 @@ def userInput = input(
     id: 'userInput',
     message: 'Enter the private IP address of the EC2 instance:',
     parameters: [
-        [$class: 'StringParameterDefinition', defaultValue: 'None' , description: 'Private IP address:' , name: 'IP_address' ]
-    ]
+        [$class: 'StringParameterDefinition', defaultValue: 'None', description: 'Private IP address:', name: 'IP_address' ]
+    
 )
-def PRIVATE_IP = userInput['IP_address']
+def PRIVATE_IP = userInput.IP_address
 
         // Validate IP Address
         if (!is_valid_ip(PRIVATE_IP)) {
