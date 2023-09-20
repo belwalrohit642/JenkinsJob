@@ -10,7 +10,7 @@ def userInput = input(
     id: 'userInput',
     message: 'Enter the private IP address of the EC2 instance:',
     parameters: [
-        [$class: 'TextParameterDefinition', defaultValue: 'None' as String, description: 'Private IP address:' as String, name: 'IP_address' as String]
+        [$class: 'StringParameterDefinition', defaultValue: 'None' , description: 'Private IP address:' , name: 'IP_address' ]
     ]
 )
 def PRIVATE_IP = userInput['IP_address']
